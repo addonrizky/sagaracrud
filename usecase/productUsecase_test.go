@@ -1,0 +1,94 @@
+package usecase
+
+import (
+	"github.com/addonrizky/sagaracrud/entity/entitydatabase"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	"encoding/base64"
+	"strconv"
+)
+
+func TestShouldSuccessCreateProduct(t *testing.T) {
+	mockRepo := new(mockDatabase)
+	productUsecase := NewProductUsecase(mockRepo)
+
+	product := entitydatabase.Product{
+		Id:		1,
+		Name: 	"KipasAngin",
+		Desc:  	"Kipas Bekas tapi masih berfungsi",
+		Price: 	10000,
+		Image: 	"KipasAngin.jpg",
+	}
+
+	imageBase64 := "iVBORw0KGgoAAAANSUhEUgAAAOEAAADgCAMAAADCMfHtAAAAgVBMVEX////+/v4AAADw8PD6+vozMzMUFBTu7u6IiIjZ2dkfHx/z8/MjIyOioqLd3d0mJiY/Pz9QUFDn5+d5eXnIyMgbGxvR0dGXl5dUVFQ5OTkMDAyurq7AwMDMzMyTk5MqKipgYGBwcHCkpKRFRUW2trZnZ2eLi4vBwcFsbGyAgIB2dnZbFABBAAAJVElEQVR4nO1ciZKjIBAFdXKZOIk5NPc51/7/B64nNgYU1Cjj8KrcHhWwn3T3A1O1CNUGxvTRP6jPMPWqqpVoi59sMy6UPrYDhq0we01IqRmnTUJNhq2lQzex2uKjfmsWqq8WdaE+Q62HDTL8tZkIoWacNgk1GWo9bMwiyv6aLFRfLepCfYZaDxvVQ0TZX5OJEGrGaZNQk6HWwxfpYVvZWBvqq0VdqM9Q62EjDFGhVT4TIdSM0yahJkOthy/SwbaysTbUV4u6UJ+h1sNaDJGUVTYTIdSM0yahJkOthy/Sv7aysTbUV4u6UJ+h1sNKDFEtq1wmQqgZp01CTYJaD1vWw6azsTbUV4u6IOyQqgy1HgoxzDPNX69nO89ECDXjtEmoSVDrYanuvUYPm8rG2vgDeoi0HnadiXWzEP7d10yEUDNOm4SaBLUelmZXO3pYNStrQ+th9+hED5t5dFN6iIotda3iGK/MxKbFU71ZlJ3BUobd2FZXNeqB1MGKh/rI65nsoT6YniNxG42hlpVVC4EkltbDVitqXe2q0qflyqqhoTxKFQFpPVQdjahFt1ZWLXqnhxoaGt2Dp4EoqwjZBVRuhQ9GLUbF48Rd8NB1xo5rJx6WixnzMnYfp4/F9vx2vyxnGwu+jTLLOfDz8bWKsYm8PyZnK6vAW/v46e+MGPPlwUIiDBlzau19A2L9M35B6R2mw0/CM4s8bchzCw29d8ovY+LZFdZVGD3OxhM+nMaXaGY69lt4Zk1TrzkMkTV7dst4P8g+NhjoyhgowIzJsMZqpJDh86rFXbD9+oRJLaD52LqwBzJ2LpNh9dUMZIhzDJ+GQc6E45fxYcutajzeQPxwqDiPpVEK2ztrnl+GsRdnh0D653Hi56HkMjGdxzKGsJs55xP0StzI6SCVzZPzdJD8+UHKMjUI422nelpg4+58hhjqX9Tth+I0eH/PptST00OUZeF05pi26W4i5diawrPEW0EkNvMaMMTPDCkvj4De++no2vZwnCiaV/RYVtgRwdmNyTXnamxykZDFWv56blj2SdRGXC0wqH4jm1zeBBxnDA6FwOmCwdhC5xzyl+XEGAZ33f1oOdonJdZeecvr8vNg5occHk7hja/wxjjuPI76iDMcZwRvwFeER9IEESI1eRB6Ec8HBm8/fdgPcpfgrdpe6uA6XmYkGYCcZfrOdp5lG6S3oB7GoT0iBJfJnWx5mbUrsgB3MtjiaDPCOGW42LyRlr7lZt2CUyJoGO0NeIOk0yjPsEgPsUUKKVuT5RjConW+LL3D2IRTSBgOoD5d6VruWzgpLSfqukGSfBQOJaoWyCED/Iuv27Zp2hEia9oYti/Rw4ORx+ByGpPNBUwJPmbJdoe1kKzAMPPpEV237+vJZDqdRAjsemEVMqSrOmasuoOYPODkvhDDtR0R3HAblDDMVfwsEpyohttvueHmlrgeYsYkRvDHSJxhtMLDyOfeH0npIcmcMA2Dc1mGeXxyvHo8Rek7vVsbZH/+5KZw7V8v0C2hKCX4Rx4Y32IylMF+YDCxohmuH0MTlEp/436RCF8EQY2W5N6/sATaoHGbDFnp6Y6YC/m3IcUwmlOfukk4TKyAIeF7Sca9AYYleki5ldV3NyphLIZ8tWAXIPfxPd8ZeXiQ4Tl6nySko8xyyewHCxiX9HOSR6F11lpCD8GGbhwzzFfDQobcy5Z7PHhLKnvCYCAM4wpN9CBaPtkkMQOGJA3f02GzuJVTiwd4x9EKYLSMkS5X58VqwRIQcgvZx4+MosNneHtiuEr/9skS7laNYab4d4vyPH2JpQxpYDRE5ANleIEkelhrIEOMIcOwjEOGZInmk4FJuMlVGntLPHhQ7z99hGwt/VqvqE3PBo4vzpC0XJMoJZsgKYawKp+phWklhrGmn8jHHQxiKxRy8SjNKs0xKWnZFQGGsESADfDdTVf1wb9pIsjNoRt5ub256TR+ZdKxkWGISJGax5tWsI8VmUNnP9sn+1ILfEicPlI65iFd8EvoYRBo6T5o4I/2h6/HCSy9Jq4EQxhb85Vp2RvgZqkeIiveEy7jl0MtJeejx/F4mF2zMi+hhxjzvpaGuCAphvDjytudUulSPSSb3mS/9GEUYSuuh/inaKCVHEN0zw8AGJZEKVwuhBnnMrc8KZZF7HKXbgXjXEOvJfKw+u4pSH7S9BC7t3leYhFMh2UMIfbccebDPMNitYD6J82QLBdChpFjR+5X/fWYyYSLIycefDd6KTIMn75ikKpVyjD79E4+8zmc7ebdYRPhY8jKxbWXFGTAEMPvFPG6NPWS/AZI/VD3SX4jLFcLD7aMYd0YL39d4RdEjJyfKT3M3SPrDMcYRNj5VjjwLTlN8vBtl9wln8jNWSISg+9ATc/xfeMzZpg0nkf+J3130aYFW164T9mdMHTM3OdK/eLG/rGR4sNMT/N4uvrb6Xpwnvs/t7EF7psJYqGy0tN4itMzk/yKFm5SVoF2byJXbNIZg9bxAsomfeN+w+PjmP0MlT7ePYy+F9vzebv4Hj1ci177SOwPo+1T/K0uXYOXhULufklBy19+Pmd7HiHwzLYs2KyIYdFt3uPLwH0coqygd6VuCbSXHboM3BeZt3KPr/tGBPx+HgIn8QuP34v+M9RQFXXTVrg/omxbVYarh40z7KqOSj5OFIrNo1xTISg2jxJ+910t+s9QQ1W0pofVyrfWQ9X0sBN2kk2FoNg8Svjdd7XoP0MNVdGyHqr4v7doPWRAMZZyTYWgHkNRv/uuFv1nqKEq+q8WLTF8ZtoawzrseFBsHuWaCqGhF6r1sHH0n6GGqtB62LAedvALaR12PCg2j3JNhVAyfx38Qirqd9/Vov8MNVSF1sPG9BAxrdbDJqxcUyEIzl9b8yjhd9/Vov8MNVSF1sPaDJGQ1XpYx8o1FYJi8yjhd9/Vov8MNVSF1sPKDFElq/WwipVrKoSK8/eqeRT3u/dqIcSwO/c0egyth8IM0Uus1kNBtxXTw6Z1Udzvv6uHiD40NJqG1sNShu1YrYclbiuqh03/jz3lfv9NPURaDzVeD62Hiuhhzbqq9VARPaw6j+J+/wU9TP+irmg9VAWiOVC1X75/W7laqTDRnoqW627qaKKH5EAMCw4mQ4bt4MAMC0rfn9BDLNQF5S3rjbKoYNCecc7rl78vZnHOSryOVBFpizFtBcZrMQvRf+AbcaOYWVgEAAAAAElFTkSuQmCC"
+	imageByte, _ := base64.StdEncoding.DecodeString(imageBase64)
+
+	mockRepo.On("AddProduct", product.Name, product.Desc, product.Price, product.Image).Return("00", nil, "sukses")
+	code,_,_ := productUsecase.CreateProduct(nil, product.Name, product.Desc, product.Price, imageByte)
+
+
+	assert.NotNil(t, code)
+	assert.Equal(t, code, "00", "they should be equal")
+}
+
+func TestShouldFailCreateProduct(t *testing.T) {
+	mockRepo := new(mockDatabase)
+	productUsecase := NewProductUsecase(mockRepo)
+
+	product := entitydatabase.Product{
+		Id:		1,
+		Name: 	"KipasAngin",
+		Desc:  	"Kipas Bekas tapi masih berfungsi",
+		Price: 	10000,
+		Image: 	"KipasAngin.jpg",
+	}
+
+	imageBase64 := "iVBORw0AAOEAAADgCAMAAADCMfHtAAAAgVBMVEX////+/v4AAADw8PD6+vozMzMUFBTu7u6IiIjZ2dkfHx/z8/MjIyOioqLd3d0mJiY/Pz9QUFDn5+d5eXnIyMgbGxvR0dGXl5dUVFQ5OTkMDAyurq7AwMDMzMyTk5MqKipgYGBwcHCkpKRFRUW2trZnZ2eLi4vBwcFsbGyAgIB2dnZbFABBAAAJVElEQVR4nO1ciZKjIBAFdXKZOIk5NPc51/7/B64nNgYU1Cjj8KrcHhWwn3T3A1O1CNUGxvTRP6jPMPWqqpVoi59sMy6UPrYDhq0we01IqRmnTUJNhq2lQzex2uKjfmsWqq8WdaE+Q62HDTL8tZkIoWacNgk1GWo9bMwiyv6aLFRfLepCfYZaDxvVQ0TZX5OJEGrGaZNQk6HWwxfpYVvZWBvqq0VdqM9Q62EjDFGhVT4TIdSM0yahJkOthy/SwbaysTbUV4u6UJ+h1sNaDJGUVTYTIdSM0yahJkOthy/Sv7aysTbUV4u6UJ+h1sNKDFEtq1wmQqgZp01CTYJaD1vWw6azsTbUV4u6IOyQqgy1HgoxzDPNX69nO89ECDXjtEmoSVDrYanuvUYPm8rG2vgDeoi0HnadiXWzEP7d10yEUDNOm4SaBLUelmZXO3pYNStrQ+th9+hED5t5dFN6iIotda3iGK/MxKbFU71ZlJ3BUobd2FZXNeqB1MGKh/rI65nsoT6YniNxG42hlpVVC4EkltbDVitqXe2q0qflyqqhoTxKFQFpPVQdjahFt1ZWLXqnhxoaGt2Dp4EoqwjZBVRuhQ9GLUbF48Rd8NB1xo5rJx6WixnzMnYfp4/F9vx2vyxnGwu+jTLLOfDz8bWKsYm8PyZnK6vAW/v46e+MGPPlwUIiDBlzau19A2L9M35B6R2mw0/CM4s8bchzCw29d8ovY+LZFdZVGD3OxhM+nMaXaGY69lt4Zk1TrzkMkTV7dst4P8g+NhjoyhgowIzJsMZqpJDh86rFXbD9+oRJLaD52LqwBzJ2LpNh9dUMZIhzDJ+GQc6E45fxYcutajzeQPxwqDiPpVEK2ztrnl+GsRdnh0D653Hi56HkMjGdxzKGsJs55xP0StzI6SCVzZPzdJD8+UHKMjUI422nelpg4+58hhjqX9Tth+I0eH/PptST00OUZeF05pi26W4i5diawrPEW0EkNvMaMMTPDCkvj4De++no2vZwnCiaV/RYVtgRwdmNyTXnamxykZDFWv56blj2SdRGXC0wqH4jm1zeBBxnDA6FwOmCwdhC5xzyl+XEGAZ33f1oOdonJdZeecvr8vNg5occHk7hja/wxjjuPI76iDMcZwRvwFeER9IEESI1eRB6Ec8HBm8/fdgPcpfgrdpe6uA6XmYkGYCcZfrOdp5lG6S3oB7GoT0iBJfJnWx5mbUrsgB3MtjiaDPCOGW42LyRlr7lZt2CUyJoGO0NeIOk0yjPsEgPsUUKKVuT5RjConW+LL3D2IRTSBgOoD5d6VruWzgpLSfqukGSfBQOJaoWyCED/Iuv27Zp2hEia9oYti/Rw4ORx+ByGpPNBUwJPmbJdoe1kKzAMPPpEV237+vJZDqdRAjsemEVMqSrOmasuoOYPODkvhDDtR0R3HAblDDMVfwsEpyohttvueHmlrgeYsYkRvDHSJxhtMLDyOfeH0npIcmcMA2Dc1mGeXxyvHo8Rek7vVsbZH/+5KZw7V8v0C2hKCX4Rx4Y32IylMF+YDCxohmuH0MTlEp/436RCF8EQY2W5N6/sATaoHGbDFnp6Y6YC/m3IcUwmlOfukk4TKyAIeF7Sca9AYYleki5ldV3NyphLIZ8tWAXIPfxPd8ZeXiQ4Tl6nySko8xyyewHCxiX9HOSR6F11lpCD8GGbhwzzFfDQobcy5Z7PHhLKnvCYCAM4wpN9CBaPtkkMQOGJA3f02GzuJVTiwd4x9EKYLSMkS5X58VqwRIQcgvZx4+MosNneHtiuEr/9skS7laNYab4d4vyPH2JpQxpYDRE5ANleIEkelhrIEOMIcOwjEOGZInmk4FJuMlVGntLPHhQ7z99hGwt/VqvqE3PBo4vzpC0XJMoJZsgKYawKp+phWklhrGmn8jHHQxiKxRy8SjNKs0xKWnZFQGGsESADfDdTVf1wb9pIsjNoRt5ub256TR+ZdKxkWGISJGax5tWsI8VmUNnP9sn+1ILfEicPlI65iFd8EvoYRBo6T5o4I/2h6/HCSy9Jq4EQxhb85Vp2RvgZqkeIiveEy7jl0MtJeejx/F4mF2zMi+hhxjzvpaGuCAphvDjytudUulSPSSb3mS/9GEUYSuuh/inaKCVHEN0zw8AGJZEKVwuhBnnMrc8KZZF7HKXbgXjXEOvJfKw+u4pSH7S9BC7t3leYhFMh2UMIfbccebDPMNitYD6J82QLBdChpFjR+5X/fWYyYSLIycefDd6KTIMn75ikKpVyjD79E4+8zmc7ebdYRPhY8jKxbWXFGTAEMPvFPG6NPWS/AZI/VD3SX4jLFcLD7aMYd0YL39d4RdEjJyfKT3M3SPrDMcYRNj5VjjwLTlN8vBtl9wln8jNWSISg+9ATc/xfeMzZpg0nkf+J3130aYFW164T9mdMHTM3OdK/eLG/rGR4sNMT/N4uvrb6Xpwnvs/t7EF7psJYqGy0tN4itMzk/yKFm5SVoF2byJXbNIZg9bxAsomfeN+w+PjmP0MlT7ePYy+F9vzebv4Hj1ci177SOwPo+1T/K0uXYOXhULufklBy19+Pmd7HiHwzLYs2KyIYdFt3uPLwH0coqygd6VuCbSXHboM3BeZt3KPr/tGBPx+HgIn8QuP34v+M9RQFXXTVrg/omxbVYarh40z7KqOSj5OFIrNo1xTISg2jxJ+910t+s9QQ1W0pofVyrfWQ9X0sBN2kk2FoNg8Svjdd7XoP0MNVdGyHqr4v7doPWRAMZZyTYWgHkNRv/uuFv1nqKEq+q8WLTF8ZtoawzrseFBsHuWaCqGhF6r1sHH0n6GGqtB62LAedvALaR12PCg2j3JNhVAyfx38Qirqd9/Vov8MNVSF1sPG9BAxrdbDJqxcUyEIzl9b8yjhd9/Vov8MNVSF1sPaDJGQ1XpYx8o1FYJi8yjhd9/Vov8MNVSF1sPKDFElq/WwipVrKoSK8/eqeRT3u/dqIcSwO/c0egyth8IM0Uus1kNBtxXTw6Z1Udzvv6uHiD40NJqG1sNShu1YrYclbiuqh03/jz3lfv9NPURaDzVeD62Hiuhhzbqq9VARPaw6j+J+/wU9TP+irmg9VAWiOVC1X75/W7laqTDRnoqW627qaKKH5EAMCw4mQ4bt4MAMC0rfn9BDLNQF5S3rjbKoYNCecc7rl78vZnHOSryOVBFpizFtBcZrMQvRf+AbcaOYWVgEAAAAAElFTkSuQmCC"
+	imageByte, _ := base64.StdEncoding.DecodeString(imageBase64)
+
+	mockRepo.On("AddProduct", product.Name, product.Desc, product.Price, product.Image).Return("00", nil, "sukses")
+	code,_,_ := productUsecase.CreateProduct(nil, product.Name, product.Desc, product.Price, imageByte)
+
+	assert.NotNil(t, code)
+	assert.Equal(t, code, "00", "they should be equal")
+}
+
+func TestShouldSuccessRetrieveProduct(t *testing.T) {
+	mockRepo := new(mockDatabase)
+	productUsecase := NewProductUsecase(mockRepo)
+
+	product := entitydatabase.Product{
+		Id:		1,
+		Name: 	"KipasAngin",
+		Desc:  	"Kipas Bekas tapi masih berfungsi",
+		Price: 	10000,
+		Image: 	"KipasAngin.jpg",
+	}
+
+	mockRepo.On("SelectProduct", strconv.Itoa(int(product.Id))).Return(product, nil, "00")
+	code,_,_,_ := productUsecase.RetrieveProduct(nil, strconv.Itoa(int(product.Id)))
+
+
+	assert.NotNil(t, code)
+	assert.Equal(t, code, "00", "they should be equal")
+}
+
+func TestShouldFailRetrieveProduct(t *testing.T) {
+	mockRepo := new(mockDatabase)
+	productUsecase := NewProductUsecase(mockRepo)
+
+	/*product := entitydatabase.Product{
+		Id:		1,
+		Name: 	"KipasAngin",
+		Desc:  	"Kipas Bekas tapi masih berfungsi",
+		Price: 	10000,
+		Image: 	"KipasAngin.jpg",
+	}*/
+
+	mockRepo.On("SelectProduct", "2").Return(entitydatabase.Product{}, nil, "NF")
+	code,_,_,_ := productUsecase.RetrieveProduct(nil, "2")
+
+
+	assert.NotNil(t, code)
+	assert.Equal(t, code, "NF", "they should be equal")
+}
